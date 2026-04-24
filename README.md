@@ -71,11 +71,25 @@ Set collection variable `postId`, `userId`, `botId` as needed.
 All endpoints return a consistent envelope:
 
 ```json
+-----Request-------`/api/posts` -----
 {
-  "success": true,
-  "message": "Post created successfully.",
-  "data": { ... },
-  "timestamp": "2024-01-15T10:30:00"
+  "authorId": 1,
+  "authorType": "USER",
+  "content": "This is my first post."
+}
+-------Response------------
+{
+    "success": true,
+    "message": "Post created successfully.",
+    "data": {
+        "id": 4,
+        "authorId": 1,
+        "authorType": "USER",
+        "content": "This is my first post.",
+        "createdAt": "2026-04-24T23:14:44.366873",
+        "viralityScore": 0
+    },
+    "timestamp": "2026-04-24T23:14:44.372895171"
 }
 ```
 
