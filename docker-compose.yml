@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+
+  #  PostgreSQL 15
+  postgres:
+    image: postgres:15-alpine
+    container_name: grid07-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: grid07db
+      POSTGRES_USER: grid07user
+      POSTGRES_PASSWORD: grid07pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grid07user -d grid07db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - grid07-network
+
+  #  Redis 7
+
+  redis:
+    image: redis:7-alpine
+    container_name: grid07-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - grid07-network
+
+  #  Spring Boot Application
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grid07-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/grid07db
+      SPRING_DATASOURCE_USERNAME: grid07user
+      SPRING_DATASOURCE_PASSWORD: grid07pass
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - grid07-network
+
+#  Volumes & Networks
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  grid07-network:
+    driver: bridge

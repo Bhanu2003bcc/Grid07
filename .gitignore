@@ -1,0 +1,19 @@
+# Maven
+/target/
+
+# Gradle
+/build/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# postman redirect
+grid07/Grid07_Postman_Collection.json
